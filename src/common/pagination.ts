@@ -3,12 +3,15 @@ import { IsInt, Max, Min } from 'class-validator';
 
 @ArgsType()
 export class PaginationArgs {
-  @Field(() => Int, { defaultValue: 1 })
+  @Field(() => Int, {
+    defaultValue: 1,
+    description: 'Страница которую надо получить',
+  })
   @IsInt()
   @Min(1)
   page: number;
 
-  @Field(() => Int, { defaultValue: 20 })
+  @Field(() => Int, { defaultValue: 20, description: 'Лимит на страницу' })
   @Min(1)
   @IsInt()
   @Max(100)
