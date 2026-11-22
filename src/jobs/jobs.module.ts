@@ -3,6 +3,6 @@ import { JobsService } from './jobs.service.js';
 import { JobsResolver } from './jobs.resolver.js';
 
 @Module({
-  providers: [JobsService, JobsResolver]
+  providers: [JobsService, JobsResolver],
 })
 export class JobsModule {}

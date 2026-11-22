@@ -9,7 +9,7 @@ export class JobsService {
   findMany(pagination: PaginationArgs) {
     return this.db.job.findMany({
       orderBy: {
-        applicantId: 'desc',
+        id: 'desc',
       },
       ...paginationFormat(pagination),
     });
@@ -30,8 +30,7 @@ export class JobsService {
         companyId,
       },
       orderBy: {
-        applicantId: applicantId ? 'desc' : undefined,
-        companyId: companyId ? 'desc' : undefined,
+        id: 'desc',
       },
       ...paginationFormat(pagination),
     });
