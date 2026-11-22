@@ -1,0 +1,16 @@
+services:
+  api:
+    build: .
+    ports:
+      - '${PORT}:${PORT}'
+    env_file:
+      - .env
+  postgres:
+    image: postgres:19-bookworm
+    env_file:
+      - .env
+    volumes:
+      - postgres-volume:/var/lib/postgresql/19/docker
+
+volumes:
+  postgres-volume:

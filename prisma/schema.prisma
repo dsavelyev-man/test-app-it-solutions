@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgres"
+}
+
+model Applicant {
+  id               Int      @id @default(autoincrement())
+  firstName        String   @db.VarChar(124)
+  shortDescription String   @db.VarChar(600)
+  links            String[] @db.VarChar(600)
+  skills           String[] @db.VarChar(124)
+
+  jobHistory          Job[]
+  applicantToProjects ApplicantToProject[]
+}
+
+model Job {
+  id          Int       @id @default(autoincrement())
+  applicant   Applicant @relation(fields: [applicantId], references: [id])
+  applicantId Int
+  company     Company   @relation(fields: [companyId], references: [id])
+  companyId   Int
+
+  position String @db.VarChar(124)
+
+  startWork DateTime
+  endWork   DateTime
+
+  achievements String[] @db.VarChar(600)
+
+  @@index([companyId, applicantId])
+}
+
+model Company {
+  id   Int    @id @default(autoincrement())
+  name String @db.VarChar(124)
+  jobs Job[]
+}
+
+model ApplicantToProject {
+  id          Int       @id @default(autoincrement())
+  applicant   Applicant @relation(fields: [applicantId], references: [id])
+  applicantId Int
+  project     Project   @relation(fields: [projectId], references: [id])
+  projectId   Int
+
+  @@index([applicantId, projectId])
+}
+
+model Project {
+  id         Int                  @id @default(autoincrement())
+  name       String               @db.VarChar(124)
+  link       String               @db.VarChar(600)
+  applicants ApplicantToProject[]
+}
