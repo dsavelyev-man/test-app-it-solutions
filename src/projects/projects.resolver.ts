@@ -32,7 +32,7 @@ export class ProjectsResolver {
   }
 
   @ResolveField(() => [ApplicantEntity], {
-    description: 'Работники связанные с проектом.',
+    description: 'Работники связанные с проектом. Пагинированный',
   })
   applicants(
     @Parent() project: ProjectEntity,

@@ -3,7 +3,7 @@ import { CompanyEntity } from '../../companies/entities/company.entity.js';
 import { ApplicantEntity } from '../../applicants/entities/applicant.entity.js';
 
 @ObjectType({
-  description: 'Истории сотрудничества компании и сотрудника',
+  description: 'Истории сотрудничества компании и сотрудника.',
 })
 export class JobEntity {
   @Field(() => Int, {

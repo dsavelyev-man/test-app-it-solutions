@@ -33,7 +33,7 @@ export class CompaniesResolver {
 
   @ResolveField(() => [JobEntity], {
     nullable: true,
-    description: 'Получение списка истории работы сотрудников.',
+    description: 'Получение списка истории работы сотрудников. Пагинированный',
   })
   jobs(
     @Parent() company: CompanyEntity,

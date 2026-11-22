@@ -13,21 +13,23 @@ export class ApplicantJobLoader extends DataLoader<
     super(async (applicants) => {
       const request = requestConstructor<number, number>({
         tableName: Prisma.ModelName.Job,
+        orderBy: 'id',
         idName: 'applicantId',
+        select: ['*'],
       });
 
-      const jobs: JobEntity[] = await db.$queryRawUnsafe(
+      const jobs: (JobEntity & { index: number })[] = await db.$queryRawUnsafe(
         request.generate(applicants),
       );
 
-      const ids = applicants.map((applicant) => applicant.groupId);
+      const ids = request.getArrayByIndex();
 
       const applicantsJobs = new Map<number, JobEntity[]>(
         ids.map((id) => [id, []]),
       );
 
       for (const job of jobs) {
-        applicantsJobs.get(job.applicantId)?.push(job);
+        applicantsJobs.get(job.index)?.push(job);
       }
 
       return ids.map((id) => applicantsJobs.get(id) || []);

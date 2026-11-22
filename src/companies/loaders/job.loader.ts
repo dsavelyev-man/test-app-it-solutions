@@ -14,25 +14,26 @@ export class CompanyJobLoader extends DataLoader<
   JobEntity[]
 > {
   constructor(db: DbService) {
-    //@ts-ignore
     super(async (companies) => {
       const request = requestConstructor<number, number>({
         tableName: Prisma.ModelName.Job,
+        orderBy: 'id',
         idName: 'companyId',
+        select: ['*'],
       });
 
-      const jobs: JobEntity[] = await db.$queryRawUnsafe(
+      const jobs: (JobEntity & { index: number })[] = await db.$queryRawUnsafe(
         request.generate(companies),
       );
 
-      const ids = companies.map((company) => company.groupId);
+      const ids = request.getArrayByIndex();
 
       const companiesJobs = new Map<number, JobEntity[]>(
         ids.map((id) => [id, []]),
       );
 
       for (const job of jobs) {
-        companiesJobs.get(job.companyId)?.push(job);
+        companiesJobs.get(job.index)?.push(job);
       }
 
       return ids.map((id) => companiesJobs.get(id) || []);

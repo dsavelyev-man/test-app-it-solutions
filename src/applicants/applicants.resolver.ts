@@ -6,6 +6,7 @@ import { JobEntity } from '../jobs/entities/job.entity.js';
 import type { GraphQLContext } from '../common/graphql.js';
 import { ApplicantEntity } from './entities/applicant.entity.js';
 import { PaginationArgs } from '../common/pagination.js';
+import { ProjectEntity } from '../projects/entity/project.entity.js';
 
 @Resolver(() => ApplicantEntity)
 export class ApplicantsResolver {
@@ -19,7 +20,7 @@ export class ApplicantsResolver {
   }
 
   @Query(() => ApplicantEntity, {
-    description: 'Получение кандидата',
+    description: 'Получение кандидата.',
   })
   applicant(@Args('id', { type: () => Int }) id: number): Promise<Applicant> {
     return this.applicantsService.getById(id);
@@ -27,7 +28,7 @@ export class ApplicantsResolver {
 
   @ResolveField(() => [JobEntity], {
     nullable: true,
-    description: 'Список где работал кандидат',
+    description: 'Список где работал кандидат. Пагинированный.',
   })
   jobs(
     @Parent() applicant: ApplicantEntity,
@@ -35,6 +36,21 @@ export class ApplicantsResolver {
     @Context() ctx: GraphQLContext,
   ): Promise<JobEntity[]> {
     return ctx.dataLoaders.applicant.job.load({
+      id: applicant.id,
+      groupId: applicant.id,
+      pagination,
+    });
+  }
+
+  @ResolveField(() => [ProjectEntity], {
+    description: 'Список проектов где участвовал кандидат. Пагинированный.',
+  })
+  projects(
+    @Parent() applicant: ApplicantEntity,
+    @Args() pagination: PaginationArgs,
+    @Context() ctx: GraphQLContext,
+  ): Promise<ProjectEntity[]> {
+    return ctx.dataLoaders.applicant.project.load({
       id: applicant.id,
       groupId: applicant.id,
       pagination,

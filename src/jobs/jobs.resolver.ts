@@ -27,7 +27,7 @@ export class JobsResolver {
 
   @Query(() => [JobEntity], {
     description:
-      'Получение определенных историй работы по id работника или по id компании.',
+      'Получение определенных историй работы по id работника или по id компании. Пагинированный.',
   })
   job(
     @Args() pagination: PaginationArgs,

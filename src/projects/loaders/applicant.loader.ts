@@ -14,26 +14,25 @@ export class ProjectApplicantLoader extends DataLoader<
       const request = requestConstructor<number, number>({
         tableName: Prisma.ModelName.ApplicantToProject,
         idName: 'projectId',
+        orderBy: 'id',
         left: Prisma.ModelName.Applicant,
         leftOn: `"applicantId" = l.id`,
-        leftSelect: ['l.*', '"projectId"'],
+        select: ['l.*', '"projectId"'],
       });
 
-      const applicants: (ApplicantEntity & { projectId: number })[] =
-        await db.$queryRawUnsafe(request.generate(projects));
+      const applicants: (ApplicantEntity & {
+        projectId: number;
+        index: number;
+      })[] = await db.$queryRawUnsafe(request.generate(projects));
 
-      const ids = projects.map((project) => project.groupId);
+      const ids = request.getArrayByIndex();
 
       const projectsApplicants = new Map<number, ApplicantEntity[]>(
         ids.map((id) => [id, []]),
       );
 
       for (const applicant of applicants) {
-        const finalApplicant: ApplicantEntity & { projectId?: number } = {
-          ...applicant,
-        };
-        delete finalApplicant.projectId;
-        projectsApplicants.get(applicant.projectId)?.push(finalApplicant);
+        projectsApplicants.get(applicant.index)?.push(applicant);
       }
 
       return ids.map((id) => projectsApplicants.get(id) || []);

@@ -1,29 +1,29 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 
 @ObjectType({
-  description: 'Работник',
+  description: 'Работник.',
 })
 export class ApplicantEntity {
   @Field(() => Int)
   id: number;
 
   @Field({
-    description: 'Имя',
+    description: 'Имя.',
   })
   firstName: string;
 
   @Field({
-    description: 'Короткое описание работника',
+    description: 'Короткое описание работника.',
   })
   shortDescription: string;
 
   @Field(() => [String], {
-    description: 'Ссылки для github и другие ресурсы',
+    description: 'Ссылки для github и другие ресурсы.',
   })
   links: string[];
 
   @Field(() => [String], {
-    description: 'Навыки',
+    description: 'Навыки.',
   })
   skills: string[];
 }

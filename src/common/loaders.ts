@@ -9,22 +9,26 @@ import { ProjectApplicantLoader } from '../projects/loaders/applicant.loader.js'
 import { LoaderPagination, paginationFormat } from './pagination.js';
 import { GraphQLError } from 'graphql';
 import { ERRORS } from './errors.js';
+import { ApplicantProjectLoader } from '../applicants/loaders/projects.loader.js';
 
 /**
  * Генерирует группу запросов с offset limit для dataloader
  * includde используется для модификации многих ко многим
+ * https://github.com/graphql/dataloader/issues/71
  * @param props Базовая информация о запросе
  * @returns
  */
 export const requestConstructor = <T, G>(props: {
   tableName: keyof typeof Prisma.ModelName;
   idName: string;
+  orderBy?: string;
   left?: keyof typeof Prisma.ModelName;
   leftOn?: string;
-  leftSelect?: string[];
+  select: string[];
 }) => {
+  let index = 0;
   return {
-    requestBase(data: Readonly<LoaderPagination<T, G>>) {
+    requestBase(data: Readonly<LoaderPagination<T, G>> & { index: number }) {
       //Защита от неожиданный sql иньекций вообще по хорошему какой нибуть knex юзать для таких историй самописных
       if (!isNumber(data.pagination.limit) || !isNumber(data.pagination.page)) {
         throw new GraphQLError(ERRORS.INVALID);
@@ -32,21 +36,37 @@ export const requestConstructor = <T, G>(props: {
 
       let formatedPagination = paginationFormat(data.pagination);
 
-      return !props.left && !props.leftOn && !props.leftSelect
-        ? `(select * from "${props.tableName}" where "${props.idName}" = ${data.id} order by "${props.idName}" offset ${formatedPagination.skip} limit ${formatedPagination.take})\n`
-        : `(select ${props.leftSelect?.join(', ')} from "${props.tableName}" left join "${props.left}" as l on ${props.leftOn} where "${props.idName}" = ${data.id} order by "${props.idName}" offset ${formatedPagination.skip} limit ${formatedPagination.take}) \n`;
+      const select = [...props.select];
+      select.push(`${data.index} as index`);
+
+      return !props.left && !props.leftOn
+        ? `(select ${select?.join(', ')} from "${props.tableName}" where "${props.idName}" = ${data.id} order by "${props.orderBy || props.idName}" offset ${formatedPagination.skip} limit ${formatedPagination.take})\n`
+        : `(select ${select?.join(', ')} from "${props.tableName}" left join "${props.left}" as l on ${props.leftOn} where "${props.idName}" = ${data.id} order by "${props.orderBy || props.idName}" offset ${formatedPagination.skip} limit ${formatedPagination.take}) \n`;
     },
     generate(data: Readonly<LoaderPagination<T, G>[]>): string {
-      let request = ``;
+      let request = [];
 
       for (const [i, props] of data.entries()) {
         if (i !== 0) {
-          request += 'union all ';
+          request.push('union all ');
         }
-        request += this.requestBase(props);
+
+        request.push(
+          this.requestBase({
+            ...props,
+            index,
+          }),
+        );
+        index++;
       }
 
-      return request;
+      return request.join('');
+    },
+    getIndex() {
+      return index;
+    },
+    getArrayByIndex() {
+      return Array.from(Array(index).keys());
     },
   };
 };
@@ -54,6 +74,7 @@ export const requestConstructor = <T, G>(props: {
 export class DataLoaders {
   applicant: {
     job: ApplicantJobLoader;
+    project: ApplicantProjectLoader;
   };
   job: {
     applicant: JobApplicantLoader;
@@ -69,6 +90,7 @@ export class DataLoaders {
   constructor(db: DbService) {
     this.applicant = {
       job: new ApplicantJobLoader(db),
+      project: new ApplicantProjectLoader(db),
     };
     this.job = {
       applicant: new JobApplicantLoader(db),
